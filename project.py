@@ -10,12 +10,12 @@ class ResultValues():
         # Do computations here
         
         # Task 1
-        raw_data = pandas.read_csv('train_bin.csv')
-        #print(raw_data)
-        raw_data = raw_data.applymap(str)
+        train_data = pandas.read_csv('train_bin.csv')
+        #print(train_data)
+        train_data = train_data.applymap(str)
         donnees=[]
-        for index, row in raw_data.iterrows():
-            rd=raw_data.loc[index, raw_data.columns != 'target']
+        for index, row in train_data.iterrows():
+            rd=train_data.loc[index, train_data.columns != 'target']
             dic=rd.to_dict()
             #print(dic)
             donnees.append([row['target'],dic])
@@ -23,6 +23,27 @@ class ResultValues():
         self.arbre = id3.construit_arbre(donnees)
         print('Arbre de décision :')
         print(self.arbre)
+
+        # Task 2
+        test_data = pandas.read_csv('test_public_bin.csv')
+        test_data = test_data.applymap(str)
+        donnees_test=[]
+        for index, row in test_data.iterrows():
+            rd=test_data.loc[index, test_data.columns != 'target']
+            dic=rd.to_dict()
+            #print(dic)
+            donnees_test.append([row['target'],dic])
+        #print(donnees_test)
+        correct=0
+        unclassified=0
+        for d in donnees_test:
+            correct+=int(self.arbre.classifie(d[1])==d[0])
+            unclassified+=int(self.arbre.classifie(d[1])=='_Not_enough_training_data_to_classify')
+        correct/=len(donnees_test)
+        unclassified/=len(donnees_test)
+        print('Pourcentage de prédiction correcte: {}%'.format(correct*100))
+        print('Pourcentage de prédiction impossible: {}%'.format(unclassified*100))
+        print('Pourcentage de prédiction incorrecte: {}%'.format((1-correct-unclassified)*100))
 
         self.arbre = None
         # Task 3

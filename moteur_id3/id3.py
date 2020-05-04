@@ -41,35 +41,45 @@ class ID3:
             :return: une instance de NoeudDeDecision correspondant à la racine de\
             l'arbre de décision.
         """
-        if len(donnees)==0:
-            return None
-        else:
-            bool_=True
-            c=donnees[0][0]
-            for d in donnees:
-                if d[0]!=c:
-                    bool_=False
-            if bool_:
-                return NoeudDeDecision(None,donnees)
-            else:
-                H={}
-                a_min=list(attributs.keys())[0]
-                min_=self.h_C_A(donnees, a_min,attributs.get(a_min))
-                for a in attributs.keys():
-                    H[a]=self.h_C_A(donnees, a,attributs.get(a))
-                    if H[a]<min_:
-                        a_min=a
-                        min_=H[a]
-                valeurs=attributs.get(a_min)
-                part=self.partitionne(donnees,a_min,valeurs)
-                enf={}
-                new_att=attributs.copy()
-                new_att.pop(a_min)
-                for v in valeurs:
-                    enf[v]=self.construit_arbre_recur(part.get(v),new_att)
-                return NoeudDeDecision(a_min,donnees,enf)
-                
+        
+        def classe_unique(donnees):
+            """ Vérifie que toutes les données appartiennent à la même classe. """
+            
+            if len(donnees) == 0:
+                return True 
+            premiere_classe = donnees[0][0]
+            for donnee in donnees:
+                if donnee[0] != premiere_classe:
+                    return False 
+            return True
 
+        if donnees == []:
+            return None
+
+        # Si toutes les données restantes font partie de la même classe,
+        # on peut retourner un noeud terminal.         
+        elif classe_unique(donnees):
+            return NoeudDeDecision(None, donnees)
+            
+        else:
+            # Sélectionne l'attribut qui réduit au maximum l'entropie.
+            h_C_As_attribs = [(self.h_C_A(donnees, attribut, attributs[attribut]), 
+                               attribut) for attribut in attributs]
+
+            attribut = min(h_C_As_attribs, key=lambda h_a: h_a[0])[1]
+
+            # Crée les sous-arbres de manière récursive.
+            attributs_restants = attributs.copy()
+            del attributs_restants[attribut]
+
+            partitions = self.partitionne(donnees, attribut, attributs[attribut])
+            
+            enfants = {}
+            for valeur, partition in partitions.items():
+                enfants[valeur] = self.construit_arbre_recur(partition,
+                                                             attributs_restants)
+
+            return NoeudDeDecision(attribut, donnees, enfants)
 
     def partitionne(self, donnees, attribut, valeurs):
         """ Partitionne les données sur les valeurs a_j de l'attribut A.
@@ -81,16 +91,13 @@ class ID3:
             l'attribut A une liste l_j contenant les données pour lesquelles A\
             vaut a_j.
         """
-        dic={}
-        #print(attribut)
-        #print(valeurs)
-        for a in valeurs:
-            dic[a]=[]
-        for d in donnees:
-            #print(d)
-            #print(dic[d[1].get(attribut)])
-            dic[d[1].get(attribut)].append(d)
-        return dic
+        partitions = {valeur: [] for valeur in valeurs}
+        
+        for donnee in donnees:
+            partition = partitions[donnee[1][attribut]]
+            partition.append(donnee)
+            
+        return partitions
 
     def p_aj(self, donnees, attribut, valeur):
         """ p(a_j) - la probabilité que la valeur de l'attribut A soit a_j.
@@ -100,10 +107,22 @@ class ID3:
             :param valeur: la valeur a_j de l'attribut A.            
             :return: p(a_j)
         """
-        p=0
-        for d in donnees:
-            p+=int(d[1].get(attribut)==valeur)
-        return p/len(donnees)
+        # Nombre de données.
+        nombre_donnees = len(donnees)
+        
+        # Permet d'éviter les divisions par 0.
+        if nombre_donnees == 0:
+            return 0.0
+        
+        # Nombre d'occurrences de la valeur a_j parmi les données.
+        nombre_aj = 0
+        for donnee in donnees:
+            if donnee[1][attribut] == valeur:
+                nombre_aj += 1
+
+        # p(a_j) = nombre d'occurrences de la valeur a_j parmi les données / 
+        #          nombre de données.
+        return nombre_aj / nombre_donnees
 
     def p_ci_aj(self, donnees, attribut, valeur, classe):
         """ p(c_i|a_j) - la probabilité conditionnelle que la classe C soit c_i\
@@ -115,17 +134,23 @@ class ID3:
             :param classe: la valeur c_i de la classe C.
             :return: p(c_i | a_j)
         """
-        p=0
-        c=0
-        for d in donnees:
-            if d[1].get(attribut)==valeur:
-                c+=1
-                p+=int(d[0]==classe)
-        if c!=0:
-            return p/c
-        else:
-            #print('c=0')
+        # Nombre d'occurrences de la valeur a_j parmi les données.
+        donnees_aj = [donnee for donnee in donnees if donnee[1][attribut] == valeur]
+        nombre_aj = len(donnees_aj)
+        
+        # Permet d'éviter les divisions par 0.
+        if nombre_aj == 0:
             return 0
+        
+        # Nombre d'occurrences de la classe c_i parmi les données pour lesquelles 
+        # A vaut a_j.
+        donnees_ci = [donnee for donnee in donnees_aj if donnee[0] == classe]
+        nombre_ci = len(donnees_ci)
+
+        # p(c_i|a_j) = nombre d'occurrences de la classe c_i parmi les données 
+        #              pour lesquelles A vaut a_j /
+        #              nombre d'occurrences de la valeur a_j parmi les données.
+        return nombre_ci / nombre_aj
 
     def h_C_aj(self, donnees, attribut, valeur):
         """ H(C|a_j) - l'entropie de la classe parmi les données pour lesquelles\
@@ -136,15 +161,17 @@ class ID3:
             :param valeur: la valeur a_j de l'attribut A.
             :return: H(C|a_j)
         """
-        s=0
-        classes=[]
-        for d in donnees:
-            classes.append(d[0])
-        for c in classes:
-            p=self.p_ci_aj(donnees, attribut, valeur, c)
-            if p!=0:
-                s+=p*log(p,2)
-        return - s
+        # Les classes attestées dans les exemples.
+        classes = list(set([donnee[0] for donnee in donnees]))
+        
+        # Calcule p(c_i|a_j) pour chaque classe c_i.
+        p_ci_ajs = [self.p_ci_aj(donnees, attribut, valeur, classe) 
+                    for classe in classes]
+
+        # Si p vaut 0 -> plog(p) vaut 0.
+        return -sum([p_ci_aj * log(p_ci_aj, 2.0) 
+                    for p_ci_aj in p_ci_ajs 
+                    if p_ci_aj != 0])
 
     def h_C_A(self, donnees, attribut, valeurs):
         """ H(C|A) - l'entropie de la classe après avoir choisi de partitionner\
@@ -155,7 +182,11 @@ class ID3:
             :param list valeurs: les valeurs a_j de l'attribut A.
             :return: H(C|A)
         """
-        s=0
-        for v in valeurs:
-            s+=self.h_C_aj(donnees, attribut, v)
-        return s
+        # Calcule P(a_j) pour chaque valeur a_j de l'attribut A.
+        p_ajs = [self.p_aj(donnees, attribut, valeur) for valeur in valeurs]
+
+        # Calcule H_C_aj pour chaque valeur a_j de l'attribut A.
+        h_c_ajs = [self.h_C_aj(donnees, attribut, valeur) 
+                   for valeur in valeurs]
+
+        return sum([p_aj * h_c_aj for p_aj, h_c_aj in zip(p_ajs, h_c_ajs)])

@@ -18,7 +18,8 @@ class NoeudDeDecision:
 
     def terminal(self):
         """ Vérifie si le noeud courant est terminal. """
-
+        #print('-----')
+        #print(self.enfants)
         return self.enfants is None
 
     def classe(self):
@@ -27,8 +28,10 @@ class NoeudDeDecision:
             données font partie de la même classe. 
         """
 
-        if self.terminal():
+        if self.terminal():# and self.donnees!=[]:
             return self.donnees[0][0]
+        #if self.donnees==[]:
+            #return '__NO_DATA'
 
     def classifie_print(self, donnee):
         """ Classifie une donnée à l'aide de l'arbre de décision duquel le noeud\
@@ -60,17 +63,20 @@ class NoeudDeDecision:
             return self.classe()
         else:
             valeur = donnee[self.attribut]
-            enfant = self.enfants.get(valeur)
-            if enfant is not None:
-                return enfant.classifie(donnee)
-            else:
-                return '_Not_enough_training_data_to_classify'
+            print(self.enfants)
+            print('1')
+            enfant = self.enfants[valeur]
+            return enfant.classifie(donnee)
 
     def repr_arbre(self, level=0):
         """ Représentation sous forme de string de l'arbre de décision duquel\
             le noeud courant est la racine. 
         """
-
+        #print('-----')
+        #print(self.donnees)
+        #print(self.terminal())
+        #for d in self.donnees:
+            #print(d[0])
         rep = ''
         if self.terminal():
             rep += '---'*level
