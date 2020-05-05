@@ -1,11 +1,7 @@
 class NoeudDeDecision:
-    """ Un noeud dans un arbre de décision. 
-    
-        This is an updated version from the one in the book (Intelligence Artificielle par la pratique).
-        Specifically, if we can not classify a data point, we return the predominant class (see lines 53 - 56). 
-    """
+    """Un noeud dans un arbre de décision. """
 
-    def __init__(self, attribut, donnees, p_class, enfants=None):
+    def __init__(self, attribut, donnees, enfants=None):
         """
             :param attribut: l'attribut de partitionnement du noeud (``None`` si\
             le noeud est un noeud terminal).
@@ -19,7 +15,6 @@ class NoeudDeDecision:
         self.attribut = attribut
         self.donnees = donnees
         self.enfants = enfants
-        self.p_class = p_class
 
     def terminal(self):
         """ Vérifie si le noeud courant est terminal. """
@@ -35,7 +30,7 @@ class NoeudDeDecision:
         if self.terminal():
             return self.donnees[0][0]
 
-    def classifie(self, donnee):
+    def classifie_print(self, donnee):
         """ Classifie une donnée à l'aide de l'arbre de décision duquel le noeud\
             courant est la racine.
 
@@ -50,13 +45,10 @@ class NoeudDeDecision:
             valeur = donnee[self.attribut]
             enfant = self.enfants[valeur]
             rep += 'Si {} = {}, '.format(self.attribut, valeur.upper())
-            try:
-                rep += enfant.classifie(donnee)
-            except:
-                rep += self.p_class
+            rep += enfant.classifie(donnee)
         return rep
-
-    def classifie_type(self, donnee):
+        
+    def classifie(self, donnee):
         """ Classifie une donnée à l'aide de l'arbre de décision duquel le noeud\
             courant est la racine.
 
@@ -68,12 +60,11 @@ class NoeudDeDecision:
             return self.classe()
         else:
             valeur = donnee[self.attribut]
-            enfant = self.enfants[valeur]
-            try:
-                return enfant.classifie_type(donnee)
-            except:
-                #print('hello')
-                return self.p_class        
+            enfant = self.enfants.get(valeur)
+            if enfant is not None:
+                return enfant.classifie(donnee)
+            else:
+                return '_Not_enough_training_data_to_classify'
 
     def repr_arbre(self, level=0):
         """ Représentation sous forme de string de l'arbre de décision duquel\
@@ -92,9 +83,10 @@ class NoeudDeDecision:
 
         else:
             for valeur, enfant in self.enfants.items():
-                rep += '---'*level
-                rep += 'Si {} = {}: \n'.format(self.attribut, valeur.upper())
-                rep += enfant.repr_arbre(level+1)
+                if enfant is not None:
+                    rep += '---'*level
+                    rep += 'Si {} = {}: \n'.format(self.attribut, valeur.upper())
+                    rep += enfant.repr_arbre(level+1)
 
         return rep
 

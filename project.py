@@ -37,12 +37,16 @@ class ResultValues():
         correct=0
         unclassified=0
         for d in donnees_test:
-            correct+=int(self.arbre.classifie(d[1])==d[0])
-            unclassified+=int(self.arbre.classifie(d[1])=='_Not_enough_training_data_to_classify')
+            a=self.arbre.classifie_type(d[1])
+            b=d[0]
+            #print(a)
+            #print(b)
+            correct+=int(a==b)
+            #unclassified+=int(self.arbre.classifie_type(d[1])=='_Not_enough_training_data_to_classify')
         correct/=len(donnees_test)
-        unclassified/=len(donnees_test)
+        #unclassified/=len(donnees_test)
         print('Pourcentage de prédiction correcte: {}%'.format(correct*100))
-        print('Pourcentage de prédiction impossible: {}%'.format(unclassified*100))
+        #print('Pourcentage de prédiction impossible: {}%'.format(unclassified*100))
         print('Pourcentage de prédiction incorrecte: {}%'.format((1-correct-unclassified)*100))
 
         self.arbre = None
