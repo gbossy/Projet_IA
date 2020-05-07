@@ -48,7 +48,33 @@ class ResultValues():
         print('Pourcentage de prédiction correcte: {}%'.format(correct*100))
         #print('Pourcentage de prédiction impossible: {}%'.format(unclassified*100))
         print('Pourcentage de prédiction incorrecte: {}%'.format((1-correct-unclassified)*100))
-
+        
+        # Sanity Check Task 2
+        if False:
+            test_data = pandas.read_csv('train_bin.csv')
+            test_data = test_data.applymap(str)
+            donnees_test=[]
+            for index, row in test_data.iterrows():
+                rd=test_data.loc[index, test_data.columns != 'target']
+                dic=rd.to_dict()
+                #print(dic)
+                donnees_test.append([row['target'],dic])
+            #print(donnees_test)
+            correct=0
+            unclassified=0
+            for d in donnees_test:
+                a=self.arbre.classifie_type(d[1])
+                b=d[0]
+                #print(a)
+                #print(b)
+                correct+=int(a==b)
+                #unclassified+=int(self.arbre.classifie_type(d[1])=='_Not_enough_training_data_to_classify')
+            correct/=len(donnees_test)
+            #unclassified/=len(donnees_test)
+            print('Pourcentage de prédiction correcte: {}%'.format(correct*100))
+            #print('Pourcentage de prédiction impossible: {}%'.format(unclassified*100))
+            print('Pourcentage de prédiction incorrecte: {}%'.format((1-correct-unclassified)*100))
+        
         self.arbre = None
         # Task 3
         self.faits_initiaux = None

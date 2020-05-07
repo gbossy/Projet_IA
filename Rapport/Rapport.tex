@@ -1,0 +1,35 @@
+\documentclass[a4paper,11pt,french]{article}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{mathrsfs}
+\usepackage[english]{babel}
+\usepackage{mathtools} % includes amsmath
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{amscd}
+\usepackage{todonotes}
+
+\usepackage{multirow}
+\usepackage{enumerate}
+
+\usepackage{tikz}
+\usepackage{framed}
+\usepackage[colorlinks]{hyperref}
+\newcommand\Set[2]{\{\,#1\mid#2\,\}}
+
+
+\title{Rapport de Projet en Intelligence Artificielle}
+\author{Julien Sahli et Gaëtan Bossy}
+
+\newtheorem{theorem}{Theorem}
+
+\begin{document}
+
+\maketitle
+\section{Introduction}
+\section{Tâche 1}
+Nous avons utilisé \emph{Pandas} pour importer les données d'entraînement en \emph{.csv}, puis nous les avons parsées afin qu'elles correspondent au template nécessaire à notre algorithme \emph{ID3}. %Profondeur de l'arbre et élaguage ?
+\section{Tâche 2}
+Similairement à la tâche précédente, nous avons utilisé \emph{Pandas} pour importer les données d'entraînement, puis nous les avons parsées, et enfin nous avons prédit leur label en implémentant la fonction \emph{classifie\_type} qui retournait le type prédit par l'arbre de la première tâche. 
+\end{document}
