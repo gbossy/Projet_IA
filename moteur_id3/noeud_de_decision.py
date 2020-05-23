@@ -35,17 +35,20 @@ class NoeudDeDecision:
         if self.terminal():
             return self.donnees[0][0]
 
-    def calcule_regles(self, prefixe=""):
+    def calcule_regles(self, prefixe=list()):
         """
         <>
         :return:
         """
         if self.terminal():
-            return [prefixe + 'Alors {}'.format(self.classe().upper())]
+            prefixe.append(('result', self.classe().upper()))
+            return [prefixe]
         else:
             resultat = []
             for valeur, enfant in self.enfants.items():
-                for sucessor in enfant.calcule_regles(prefixe + 'Si {} = {}, '.format(self.attribut, valeur)):
+                tmp = prefixe.copy()
+                tmp.append((self.attribut, valeur))
+                for sucessor in enfant.calcule_regles(tmp):
                     resultat.append(sucessor)
             return resultat
 
