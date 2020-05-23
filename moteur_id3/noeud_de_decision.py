@@ -35,23 +35,33 @@ class NoeudDeDecision:
         if self.terminal():
             return self.donnees[0][0]
 
-    def classifie(self, donnee):
-        """ Classifie une donnée à l'aide de l'arbre de décision duquel le noeud\
-            courant est la racine.
-
-            :param donnee: la donnée à classifier.
-            :return: la classe de la donnée selon le noeud de décision courant.
+    def calcule_regles(self, prefixe=""):
         """
+        <>
+        :return:
+        """
+        if self.terminal():
+            return [prefixe + 'Alors {}'.format(self.classe().upper())]
+        else:
+            resultat = []
+            for valeur, enfant in self.enfants.items():
+                for sucessor in enfant.calcule_regles(prefixe + 'Si {} = {}, '.format(self.attribut, valeur)):
+                    resultat.append(sucessor)
+            return resultat
 
+    def calcule_regle_unique(self, donnee):
+        """ Calcule la regle logique permettant de classifier la donnee speficiee
+            :param donnee: la donnee a classifier.
+            :return: la regle correspondante
+        """
         rep = ''
         if self.terminal():
             rep += 'Alors {}'.format(self.classe().upper())
         else:
             valeur = donnee[self.attribut]
-            enfant = self.enfants[valeur]
             rep += 'Si {} = {}, '.format(self.attribut, valeur.upper())
             try:
-                rep += enfant.classifie(donnee)
+                rep += self.enfants[valeur].calcule_regle_unique(donnee)
             except:
                 rep += self.p_class
         return rep
@@ -63,17 +73,14 @@ class NoeudDeDecision:
             :param donnee: la donnée à classifier.
             :return: la classe de la donnée selon le noeud de décision courant.
         """
-
         if self.terminal():
             return self.classe()
         else:
             valeur = donnee[self.attribut]
-            enfant = self.enfants[valeur]
             try:
-                return enfant.classifie_type(donnee)
+                return self.enfants[valeur].classifie_type(donnee)
             except:
-                #print('hello')
-                return self.p_class        
+                return self.p_class
 
     def repr_arbre(self, level=0):
         """ Représentation sous forme de string de l'arbre de décision duquel\
