@@ -5,6 +5,17 @@ import pandas
 
 class ResultValues:
 
+    def affiche_regles(self):
+        regles = self.arbre.calcule_regles()
+
+        for regle in regles:
+            *conditions, resultat = regle
+            affichage = ''
+            for condition in conditions :
+                affichage += 'Si {} = {}, '.format(condition[0], condition[1])
+            affichage += 'alors {}'.format(resultat[1])
+            print(affichage)
+
     def importe_donnees(self, test_data):
         test_data = pandas.read_csv(test_data).applymap(str)
         donnees_test = []
@@ -42,7 +53,8 @@ class ResultValues:
               ' / {}%'.format(100-self.resultat))
 
         # Task 3
-        for regle in self.arbre.calcule_regles(): print(regle)
+
+        self.affiche_regles()
         # la ligne suivante affiche la regle correspondante à chaque échantillon de donnée
         # for donnee in donnees_test: print(self.arbre.calcule_regle_unique(donnee[1]))
 
