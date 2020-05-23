@@ -57,16 +57,14 @@ class NoeudDeDecision:
             :param donnee: la donnee a classifier.
             :return: la regle correspondante
         """
-        rep = ''
+        rep = []
         if self.terminal():
-            rep += 'Alors {}'.format(self.classe().upper())
+            rep.append(('result', self.classe().upper()))
         else:
-            valeur = donnee[self.attribut]
-            rep += 'Si {} = {}, '.format(self.attribut, valeur.upper())
-            try:
-                rep += self.enfants[valeur].calcule_regle_unique(donnee)
-            except:
-                rep += self.p_class
+            value = donnee[self.attribut]
+            rep.append((self.attribut, value.upper()))
+            rep += (self.enfants[value].calcule_regle_unique(donnee))
+
         return rep
 
     def classifie_type(self, donnee):
