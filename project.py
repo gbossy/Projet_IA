@@ -128,12 +128,13 @@ class ResultValues:
         # for rule in self.rules: self.print_rule(rule)
 
         # also shows rules on demand for a certain data
-        self.faits_initiaux = test_data[1]  # indicate here the example you want
+        self.faits_initiaux = train_data
+        sample = self.faits_initiaux[11] # indicate here the example you want
         print("\nThe specified patient has the following data:")
-        print(self.faits_initiaux)
+        print(sample)
         print("It can be described using the following rule:")
-        self.print_rule(self.arbre.calcule_regle_unique(self.faits_initiaux[1]))
-        self.diagnostic(self.faits_initiaux[1], self.healty_rules)
+        self.print_rule(self.arbre.calcule_regle_unique(sample[1]))
+        self.diagnostic(sample[1], self.healty_rules)
 
         # compute how many patients we can cure with 2 changes or less
         total = [0, 0, 0]
