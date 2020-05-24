@@ -27,9 +27,19 @@
 \begin{document}
 
 \maketitle
-\section{Introduction}
+%\section{Introduction}
 \section{Tâche 1}
 Nous avons utilisé \emph{Pandas} pour importer les données d'entraînement en \emph{.csv}, puis nous les avons parsées afin qu'elles correspondent au template nécessaire à notre algorithme \emph{ID3}. %Profondeur de l'arbre et élaguage ?
 \section{Tâche 2}
-Similairement à la tâche précédente, nous avons utilisé \emph{Pandas} pour importer les données d'entraînement, puis nous les avons parsées, et enfin nous avons prédit leur label en implémentant la fonction \emph{classifie\_type} qui retournait le type prédit par l'arbre de la première tâche. 
+Similairement à la tâche précédente, nous avons utilisé \emph{Pandas} pour importer les données d'entraînement, puis nous les avons parsées, et enfin nous avons prédit leur label en utilisant la fonction \emph{classifie} et l'indexation -1 permettant d'accéder au dernier élement d'une \emph{string}.
+\section{Tâche 5}
+Quelques modifications de \emph{ID3}, implémentées dans la classe \emph{ID3\_advanced} et \emph{NoeudDeDecision\_advanced}, se sont révelées nécessaires pour implémenter cette tâche:
+\begin{itemize}
+\item Nous avons calculé l'entropie de chaque séparation potentielle des données pour chaque attribut plutôt que de simplement choisir un attribut et de séparer complétement pour chaque valeur de cet attribut. Ceci a nécessité une modification des fonctions calculant l'entropie et les différentes probabilités ainsi que l'implémentation de quelques fonctions similaires.
+\item Nous avons modifié le système qui retire les attributs de la liste des attributs potentiels pour un noeud afin qu'il ne retire un attribut que lorsque l'ensemble des données d'un noeud possède la même valeur pour cet attribut. Pour ce faire nous avons décidé de recalculer la liste des attributs et de leur valeurs potentielles à chaque création d'un nouveau noeud dans notre fonction récurrente. Il serait probablement possible d'avoir une solution légèrement plus efficiente à ce problème mais la simplicité de notre solution nous convient.
+\item Nous avons modifié la création des enfants pour s'assurer que chaque noeud aie zéro ou deux enfants correspondants au valeur en dessus ou en dessous du seuil de séparation du noeud.
+\item Nous avons adapté le système de classification pour refléter qu'il n'existait plus toujours un enfant avec la valeur exacte de l'attribut.
+\item Nous avons réglé quelques problèmes causé par la représentation qui était prévue pour des \emph{strings}.
+\end{itemize}
+Ces cinq modifications effectuées, nous avons procédé similairement aux tâches 1 et 2 afin d'importer les données d'entraînement et de test, excepté que les données sont transformées en \emph{float} au lieu de \emph{string} et que cela change quelques détails d'implémentation.
 \end{document}

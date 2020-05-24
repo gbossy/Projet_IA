@@ -1,14 +1,18 @@
 from moteur_id3.noeud_de_decision import NoeudDeDecision
 from moteur_id3.id3 import ID3
+from moteur_id3.noeud_de_decision_advanced import NoeudDeDecision_advanced
+from moteur_id3.id3_advanced import ID3_advanced
 import pandas
 
 
 class ResultValues:
 
+    #fonctions nécessaires aux tâches 3 et 4
     def diagnostic(self, user_data, healthy_rules, verbose=1, modifiable_traits=2):
         """
         :param user_data: the list of the patient's traits
         :param healthy_rules: the list of the rules ensuring a patient is healthy
+        :param verbose: if true, will print a recommendation. Enabled by default
         :param modifiable_traits: the amount of traits that a patient can change (except for age and sex)
         :return: 2 if healthy, 1 if curable, 0 in not curable
         """
@@ -31,12 +35,12 @@ class ResultValues:
 
         if minimal_change <= modifiable_traits:
             if verbose:
-                print("The patient can be cured in {} change(s) by applying the following rule :".format(minimal_change))
+                print("Curable in {} change(s) by applying the following rule :".format(minimal_change))
                 self.print_rule(best_rule)
             return 1
         else:
             if verbose:
-                print("The patient cannot be cured, it would require {} change(s)to apply the following rule :".format(minimal_change))
+                print("Not curable, it would require {} change(s) to apply the following rule :".format(minimal_change))
                 self.print_rule(best_rule)
             return 0
 
@@ -55,9 +59,16 @@ class ResultValues:
                 result.append(rule)
         return result
 
-    def affiche_regles(self, regles):
-        for regle in regles:
-            self.print_rule(regle)
+    # Fonctions nécessaires à la tâche 2
+    def prediction(self, test_data):
+        correct = 0
+
+        for d in test_data:
+            correct += int(self.arbre.classifie_type(d[1]) == d[0])
+        correct *= 100 / len(test_data)
+
+        print('Pourcentage de prédiction correcte: {}%'.format(correct))
+        print('Pourcentage de prédiction incorrecte: {}%'.format(100 - correct))
 
     def import_data(self, test_data):
         test_data = pandas.read_csv(test_data).applymap(str)
@@ -69,58 +80,84 @@ class ResultValues:
 
         return result
 
-    # Fonction nécessaire à la tâche 2
-    def prediction(self, data_test):
+    # Fonction nécessaire à la tâche 5
+    def prediction_advance(self, test_data):
         correct = 0
-        for d in data_test:
-            correct += int(self.arbre.classifie_type(d[1]) == d[0])
 
-        return correct * 100 / len(data_test)
+        for d in test_data:
+            correct += int(self.arbre_advance.classifie(d[1])[-3] == d[0][0])
+        correct *= 100 / len(test_data)
+
+        print('Pourcentage de prédiction correcte: {}%'.format(correct))
+        print('Pourcentage de prédiction incorrecte: {}%'.format(100 - correct))
+
+    def import_data_advance(self, test_data):
+        test_data = pandas.read_csv(test_data).applymap(float)
+        result = []
+
+        for index, row in test_data.iterrows():
+            dic = test_data.loc[index, test_data.columns != 'target'].to_dict()
+            result.append([str(row['target']), dic])
+
+        return result
 
     def __init__(self):
 
         # Do computations here
 
         # Task 1
-        training_data = self.import_data('train_bin.csv')
-        self.arbre = ID3().construit_arbre(training_data)
-        print('Decision tree :')
-        print(self.arbre)
+        train_data = self.import_data('train_bin.csv')
+        self.arbre = ID3().construit_arbre(train_data)
+        # print('Decision tree :')
+        # print(self.arbre)
 
         # Task 2
-        donnees_test = self.import_data('test_public_bin.csv')
-        self.resultat = self.prediction(donnees_test)
-
-        print('Pourcentage de prédictions correctes / incorrectes  : {}%'.format(self.resultat) +
-              ' / {}%'.format(100 - self.resultat))
+        test_data = self.import_data('test_public_bin.csv')
+        if True:
+            self.prediction(test_data)
+        # Sanity check Task 2
+        if False:
+            self.prediction(train_data)
 
         # Task 3 and Task 4
 
         # compute and show each rule
-        self.regles = self.arbre.calcule_regles()
-        self.healty_rules = self.get_healthy_rules(self.regles)
-        print("\nDisplay all possible rules")
-        self.affiche_regles(self.regles)
+        self.rules = self.arbre.calcule_regles()
+        self.healty_rules = self.get_healthy_rules(self.rules)
+        # print("\nDisplay all possible rules")
+        # for rule in self.rules: self.print_rule(rule)
 
         # also shows rules on demand for a certain data
-        self.faits_initiaux = donnees_test[1] # indicate here the example you want
+        self.faits_initiaux = test_data[1]  # indicate here the example you want
         print("\nThe specified patient has the following data:")
         print(self.faits_initiaux)
         print("It can be described using the following rule:")
-        self.affiche_regles([self.arbre.calcule_regle_unique(self.faits_initiaux[1])])
+        self.print_rule(self.arbre.calcule_regle_unique(self.faits_initiaux[1]))
         self.diagnostic(self.faits_initiaux[1], self.healty_rules)
 
         # compute how many patients we can cure with 2 changes or less
         total = [0, 0, 0]
-        for data in donnees_test:
-            total[self.diagnostic(data[1], self.healty_rules, 0)]+=1
-        print("\nWith 2 changes or less, we can cure {} patients ; we cannot heal {} and {} are already healthy".format(total[1],total[0],total[2]))
+        change_amount = 2
+        for data in test_data:
+            total[self.diagnostic(data[1], self.healty_rules, False, change_amount)] += 1
+        print("\nWith {} changes or less, we can cure {} patients; we cannot heal {} and {} are already healthy".format(
+            change_amount, total[1], total[0], total[2]))
 
         # Task 5
-        self.arbre_advance = None
+        train_data_advance = self.import_data_advance('train_continuous.csv')
+        self.arbre_advance = ID3_advanced().construit_arbre(train_data_advance)
+        # print('Arbre de décision :')
+        # print(self.arbre_advance)
+
+        test_data_advance = self.import_data_advance('test_public_continuous.csv')
+        if True:
+            self.prediction_advance(test_data_advance)
+        # Sanity Check Task 5
+        if False:
+            self.prediction_advance(train_data_advance)
 
     def get_results(self):
-        return [self.arbre, self.faits_initiaux, self.regles, self.arbre_advance]
+        return [self.arbre, self.faits_initiaux, self.rules, self.arbre_advance]
 
 
 r = ResultValues()
