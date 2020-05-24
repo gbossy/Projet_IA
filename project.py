@@ -8,7 +8,7 @@ import pandas
 class ResultValues:
 
     #fonctions nécessaires aux tâches 3 et 4
-    def diagnostic(self, user_data, healthy_rules, verbose=1, modifiable_traits=2):
+    def diagnostic(self, user_data, healthy_rules, verbose=True, modifiable_traits=2):
         """
         :param user_data: the list of the patient's traits
         :param healthy_rules: the list of the rules ensuring a patient is healthy
